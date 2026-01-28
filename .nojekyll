@@ -1,0 +1,3 @@
+# 禁用Jekyll处理
+# 这个文件告诉GitHub Pages不要使用Jekyll来处理静态文件
+# 确保我们的HTML文件能够正常显示
