@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能日期待办事项 - Todo List</title>
+    <style>
+        /* 导入 Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --today-color: #48bb78;
+            --future-color: #4299e1;
+            --past-color: #ed8936;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, var(--background-color) 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+        
+        .date-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            animation: slideInUp 0.6s ease-out 0.1s both;
+        }
+        
+        .date-display {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .date-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .date-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .date-badge.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .date-badge.today {
+            border-color: var(--today-color);
+            color: var(--today-color);
+        }
+        
+        .date-badge.future {
+            border-color: var(--future-color);
+            color: var(--future-color);
+        }
+        
+        .date-badge.past {
+            border-color: var(--past-color);
+            color: var(--past-color);
+        }
+        
+        .date-badge.all {
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+        }
+        
+        .date-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .input-section {
+            background: var(--surface-color);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            animation: slideInUp 0.6s ease-out 0.2s both;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .task-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--background-color);
+        }
+        
+        .task-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .date-input {
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--background-color);
+            min-width: 200px;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .repeat-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .repeat-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .repeat-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: var(--background-color);
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .add-btn:active {
+            transform: translateY(0);
+        }
+        
+        .tasks-section {
+            flex: 1;
+            animation: slideInUp 0.6s ease-out 0.4s both;
+        }
+        
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+        
+        .tasks-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .tasks-count {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .date-group {
+            margin-bottom: 2rem;
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .date-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        
+        .date-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .date-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .date-indicator.today {
+            background: var(--today-color);
+            color: white;
+        }
+        
+        .date-indicator.future {
+            background: var(--future-color);
+            color: white;
+        }
+        
+        .date-indicator.past {
+            background: var(--past-color);
+            color: white;
+        }
+        
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .task-item {
+            background: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .task-item.completed {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+        
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+        
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .task-checkbox.checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .task-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .task-text {
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .task-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .repeat-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.1rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .delete-btn:hover {
+            color: #e53e3e;
+            background: rgba(229, 62, 62, 0.1);
+            transform: scale(1.1);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-text {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-subtext {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        /* 动画定义 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .date-navigation {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .input-row {
+                flex-direction: column;
+            }
+            
+            .task-input, .date-input {
+                width: 100%;
+            }
+            
+            .task-item {
+                padding: 1rem;
+            }
+            
+            .task-actions {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">智能待办</h1>
+            <p class="subtitle">按日期管理你的任务，让生活更有条理</p>
+        </header>
+        
+        <section class="date-navigation">
+            <div class="date-display" id="currentDateDisplay">今天</div>
+            <div class="date-badges">
+                <div class="date-badge today active" data-filter="today">今日</div>
+                <div class="date-badge future" data-filter="future">未来</div>
+                <div class="date-badge past" data-filter="past">过去</div>
+                <div class="date-badge all" data-filter="all">全部</div>
+            </div>
+        </section>
+        
+        <section class="input-section">
+            <div class="input-row">
+                <input type="text" class="task-input" placeholder="添加新任务..." id="taskInput">
+                <input type="date" class="date-input" id="taskDate" value="">
+            </div>
+            <div class="repeat-section">
+                <label class="repeat-label">
+                    <input type="checkbox" id="repeatCheckbox">
+                    重复任务
+                </label>
+                <select class="repeat-select" id="repeatType" disabled>
+                    <option value="none">不重复</option>
+                    <option value="daily">每日</option>
+                    <option value="weekly">每周</option>
+                    <option value="monthly">每月</option>
+                </select>
+            </div>
+            <button class="add-btn" id="addTaskBtn">
+                <span>添加任务</span>
+            </button>
+        </section>
+        
+        <section class="tasks-section">
+            <div class="tasks-header">
+                <h2 class="tasks-title" id="tasksTitle">今日任务</h2>
+                <span class="tasks-count" id="tasksCount">0 个任务</span>
+            </div>
+            
+            <div id="tasksContainer">
+                <!-- 日期分组将动态添加到这里 -->
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <div class="empty-text">还没有任务</div>
+                    <div class="empty-subtext">添加你的第一个任务开始吧！</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        class SmartTodoApp {
+            constructor() {
+                this.tasks = JSON.parse(localStorage.getItem('smartTodoTasks')) || [];
+                this.currentFilter = 'today';
+                this.initElements();
+                this.initEventListeners();
+                this.render();
+            }
+            
+            initElements() {
+                this.taskInput = document.getElementById('taskInput');
+                this.taskDate = document.getElementById('taskDate');
+                this.repeatCheckbox = document.getElementById('repeatCheckbox');
+                this.repeatType = document.getElementById('repeatType');
+                this.addTaskBtn = document.getElementById('addTaskBtn');
+                this.tasksContainer = document.getElementById('tasksContainer');
+                this.tasksCount = document.getElementById('tasksCount');
+                this.tasksTitle = document.getElementById('tasksTitle');
+                this.currentDateDisplay = document.getElementById('currentDateDisplay');
+                
+                // 设置默认日期为今天
+                this.taskDate.value = this.formatDate(new Date());
+            }
+            
+            initEventListeners() {
+                this.addTaskBtn.addEventListener('click', () => this.addTask());
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });
+                
+                this.repeatCheckbox.addEventListener('change', (e) => {
+                    this.repeatType.disabled = !e.target.checked;
+                });
+                
+                // 日期筛选按钮
+                document.querySelectorAll('.date-badge').forEach(badge => {
+                    badge.addEventListener('click', (e) => {
+                        this.setFilter(e.target.dataset.filter);
+                    });
+                });
+            }
+            
+            formatDate(date) {
+                return date.toISOString().split('T')[0];
+            }
+            
+            formatDisplayDate(dateStr) {
+                const date = new Date(dateStr);
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (this.formatDate(date) === this.formatDate(today)) {
+                    return '今天';
+                } else if (this.formatDate(date) === this.formatDate(tomorrow)) {
+                    return '明天';
+                } else if (this.formatDate(date) === this.formatDate(yesterday)) {
+                    return '昨天';
+                } else {
+                    return date.toLocaleDateString('zh-CN', { 
+                        weekday: 'long',
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                }
+            }
+            
+            getDateType(dateStr) {
+                const date = new Date(dateStr);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (this.formatDate(date) === this.formatDate(today)) {
+                    return 'today';
+                } else if (date > today) {
+                    return 'future';
+                } else {
+                    return 'past';
+                }
+            }
+            
+            setFilter(filter) {
+                this.currentFilter = filter;
+                
+                // 更新按钮状态
+                document.querySelectorAll('.date-badge').forEach(badge => {
+                    badge.classList.remove('active');
+                });
+                document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+                
+                // 更新显示
+                const titles = {
+                    'today': '今日任务',
+                    'future': '未来任务',
+                    'past': '过去任务',
+                    'all': '所有任务'
+                };
+                this.tasksTitle.textContent = titles[filter];
+                this.currentDateDisplay.textContent = titles[filter];
+                
+                this.render();
+            }
+            
+            addTask() {
+                const text = this.taskInput.value.trim();
+                const date = this.taskDate.value;
+                const repeat = this.repeatCheckbox.checked ? this.repeatType.value : 'none';
+                
+                if (!text || !date) return;
+                
+                const task = {
+                    id: Date.now(),
+                    text: text,
+                    date: date,
+                    repeat: repeat,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.tasks.unshift(task);
+                this.saveTasks();
+                this.render();
+                
+                this.taskInput.value = '';
+                this.taskInput.focus();
+                this.repeatCheckbox.checked = false;
+                this.repeatType.disabled = true;
+                
+                this.showNotification('任务添加成功！');
+            }
+            
+            toggleTask(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.saveTasks();
+                    this.render();
+                }
+            }
+            
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.saveTasks();
+                this.render();
+                this.showNotification('任务已删除');
+            }
+            
+            getFilteredTasks() {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                switch (this.currentFilter) {
+                    case 'today':
+                        return this.tasks.filter(task => 
+                            this.formatDate(new Date(task.date)) === this.formatDate(today)
+                        );
+                    case 'future':
+                        return this.tasks.filter(task => 
+                            new Date(task.date) > today
+                        );
+                    case 'past':
+                        return this.tasks.filter(task => 
+                            new Date(task.date) < today && 
+                            this.formatDate(new Date(task.date)) !== this.formatDate(today)
+                        );
+                    default:
+                        return this.tasks;
+                }
+            }
+            
+            groupTasksByDate(tasks) {
+                const groups = {};
+                
+                tasks.forEach(task => {
+                    if (!groups[task.date]) {
+                        groups[task.date] = [];
+                    }
+                    groups[task.date].push(task);
+                });
+                
+                // 按日期排序
+                return Object.entries(groups)
+                    .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+                    .reduce((acc, [date, tasks]) => {
+                        acc[date] = tasks;
+                        return acc;
+                    }, {});
+            }
+            
+            render() {
+                const filteredTasks = this.getFilteredTasks();
+                
+                if (filteredTasks.length === 0) {
+                    this.tasksContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <div class="empty-text">还没有任务</div>
+                            <div class="empty-subtext">添加你的第一个任务开始吧！</div>
+                        </div>
+                    `;
+                    this.updateCount(filteredTasks);
+                    return;
+                }
+                
+                const groupedTasks = this.groupTasksByDate(filteredTasks);
+                
+                let html = '';
+                
+                Object.entries(groupedTasks).forEach(([date, tasks]) => {
+                    const dateType = this.getDateType(date);
+                    const displayDate = this.formatDisplayDate(date);
+                    
+                    html += `
+                        <div class="date-group">
+                            <div class="date-header">
+                                <div class="date-title">${displayDate}</div>
+                                <div class="date-indicator ${dateType}">${dateType === 'today' ? '今日' : dateType === 'future' ? '未来' : '过去'}</div>
+                            </div>
+                            <div class="tasks-list">
+                                ${tasks.map(task => `
+                                    <div class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                                        <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                                             onclick="smartApp.toggleTask(${task.id})"></div>
+                                        <div class="task-content">
+                                            <div class="task-text">${this.escapeHtml(task.text)}</div>
+                                            <div class="task-date">
+                                                ${task.repeat !== 'none' ? `<span class="repeat-badge">${this.getRepeatLabel(task.repeat)}</span>` : ''}
+                                                ${this.formatDate(new Date(task.date))}
+                                            </div>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="delete-btn" onclick="smartApp.deleteTask(${task.id})" title="删除任务">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                this.tasksContainer.innerHTML = html;
+                this.updateCount(filteredTasks);
+            }
+            
+            getRepeatLabel(repeatType) {
+                const labels = {
+                    'daily': '每日',
+                    'weekly': '每周',
+                    'monthly': '每月'
+                };
+                return labels[repeatType] || repeatType;
+            }
+            
+            updateCount(tasks) {
+                const total = tasks.length;
+                const completed = tasks.filter(t => t.completed).length;
+                this.tasksCount.textContent = `${completed}/${total} 已完成`;
+            }
+            
+            saveTasks() {
+                localStorage.setItem('smartTodoTasks', JSON.stringify(this.tasks));
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 8px;
+                    box-shadow: var(--shadow-hover);
+                    z-index: 1000;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+        }
+        
+        // 初始化应用
+        const smartApp = new SmartTodoApp();
+        
+        // 添加一些示例任务（首次使用时）
+        if (smartApp.tasks.length === 0) {
+            setTimeout(() => {
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const sampleTasks = [
+                    { text: '欢迎使用智能待办事项应用', date: smartApp.formatDate(today) },
+                    { text: '点击复选框标记任务完成', date: smartApp.formatDate(today) },
+                    { text: '可以设置不同日期的任务', date: smartApp.formatDate(tomorrow) },
+                    { text: '支持重复任务功能', date: smartApp.formatDate(today), repeat: 'daily' },
+                    { text: '按日期分类查看任务', date: smartApp.formatDate(yesterday) }
+                ];
+                
+                sampleTasks.forEach((task, index) => {
+                    setTimeout(() => {
+                        smartApp.taskInput.value = task.text;
+                        smartApp.taskDate.value = task.date;
+                        if (task.repeat) {
+                            smartApp.repeatCheckbox.checked = true;
+                            smartApp.repeatType.disabled = false;
+                            smartApp.repeatType.value = task.repeat;
+                        }
+                        smartApp.addTask();
+                    }, index * 500);
+                });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "skill_name": "algorithmic-art",
+  "metadata": {
+    "name": "algorithmic-art",
+    "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.",
+    "license": "Complete terms in LICENSE.txt"
+  },
+  "deployed_at": "1769576560.0093644",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md",
+    "templates\\generator_template.js",
+    "templates\\viewer.html"
+  ]
+}

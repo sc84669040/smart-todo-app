@@ -1,0 +1,16 @@
+{
+  "skill_name": "web-artifacts-builder",
+  "metadata": {
+    "name": "web-artifacts-builder",
+    "description": "Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.",
+    "license": "Complete terms in LICENSE.txt"
+  },
+  "deployed_at": "1769576560.2777157",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md",
+    "scripts\\bundle-artifact.sh",
+    "scripts\\init-artifact.sh",
+    "scripts\\shadcn-components.tar.gz"
+  ]
+}

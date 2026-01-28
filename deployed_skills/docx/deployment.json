@@ -1,0 +1,21 @@
+{
+  "skill_name": "docx",
+  "metadata": {
+    "name": "docx",
+    "description": "Comprehensive document creation, editing, and analysis with support for tracked changes, comments, formatting preservation, and text extraction. When Claude needs to work with professional documents (.docx files) for: (1) Creating new documents, (2) Modifying or editing content, (3) Working with tracked changes, (4) Adding comments, or any other document tasks",
+    "license": "Proprietary. LICENSE.txt has complete terms"
+  },
+  "deployed_at": "1769576560.0687492",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md",
+    "scripts\\document.py",
+    "scripts\\utilities.py",
+    "scripts\\__init__.py",
+    "scripts\\templates\\comments.xml",
+    "scripts\\templates\\commentsExtended.xml",
+    "scripts\\templates\\commentsExtensible.xml",
+    "scripts\\templates\\commentsIds.xml",
+    "scripts\\templates\\people.xml"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "skill_name": "template",
+  "metadata": {
+    "name": "template-skill",
+    "description": "Replace with description of the skill and when Claude should use it."
+  },
+  "deployed_at": "1769576392.2257242",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md"
+  ]
+}

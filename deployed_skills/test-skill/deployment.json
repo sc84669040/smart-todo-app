@@ -1,0 +1,20 @@
+{
+  "skill_name": "test-skill",
+  "metadata": {
+    "name": "test-skill",
+    "description": "这是一个测试技能，用于验证技能部署系统",
+    "version": "1.0.0",
+    "author": "MyTool Team",
+    "category": "test",
+    "tags": [
+      "test",
+      "example",
+      "deployment"
+    ]
+  },
+  "deployed_at": "1769575668.6618946",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md"
+  ]
+}

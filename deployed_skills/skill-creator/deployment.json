@@ -1,0 +1,16 @@
+{
+  "skill_name": "skill-creator",
+  "metadata": {
+    "name": "skill-creator",
+    "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations.",
+    "license": "Complete terms in LICENSE.txt"
+  },
+  "deployed_at": "1769576560.2332082",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md",
+    "scripts\\init_skill.py",
+    "scripts\\package_skill.py",
+    "scripts\\quick_validate.py"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "skill_name": "pdf",
+  "metadata": {
+    "name": "pdf",
+    "description": "Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms. When Claude needs to fill in a PDF form or programmatically process, generate, or analyze PDF documents at scale.",
+    "license": "Proprietary. LICENSE.txt has complete terms"
+  },
+  "deployed_at": "1769576560.1669672",
+  "source": "unknown",
+  "resources": [
+    "SKILL.md",
+    "scripts\\check_bounding_boxes.py",
+    "scripts\\check_bounding_boxes_test.py",
+    "scripts\\check_fillable_fields.py",
+    "scripts\\convert_pdf_to_images.py",
+    "scripts\\create_validation_image.py",
+    "scripts\\extract_form_field_info.py",
+    "scripts\\fill_fillable_fields.py",
+    "scripts\\fill_pdf_form_with_annotations.py"
+  ]
+}
