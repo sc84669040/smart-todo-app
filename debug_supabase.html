@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase连接调试</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid;
+        }
+        .success { background: #d4edda; color: #155724; border-color: #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-color: #dc3545; }
+        .info { background: #d1ecf1; color: #0c5460; border-color: #17a2b8; }
+        .warning { background: #fff3cd; color: #856404; border-color: #ffc107; }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Supabase连接调试工具</h1>
+        
+        <div class="status info" id="initialStatus">正在初始化调试工具...</div>
+        
+        <div>
+            <button onclick="window.testConnection()">测试基本连接</button>
+            <button onclick="window.testTable()">测试tasks表</button>
+            <button onclick="window.createTable()">创建tasks表</button>
+            <button onclick="window.testInsert()">测试插入数据</button>
+            <button onclick="window.testQuery()">测试查询数据</button>
+        </div>
+        
+        <div id="results" style="margin-top: 20px;"></div>
+        
+        <h3>Supabase配置信息</h3>
+        <div class="code">
+URL: https://ikukopjsbewxvudeemxg.supabase.co
+Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrdWtvcGpzYmV3eHZ1ZGVlbXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODkyNDgsImV4cCI6MjA4NTE2NTI0OH0.Y05tYSapZaSQ9aca4Ih2d0ETYonUUHyU4w_XnZqFZ-g
+        </div>
+        
+        <h3>创建表的SQL语句</h3>
+        <div class="code">
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    text TEXT NOT NULL,
+    date DATE,
+    priority TEXT,
+    repeat TEXT,
+    completed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+        </div>
+    </div>
+
+    <script>
+        // Supabase配置
+        const SUPABASE_CONFIG = {
+            url: 'https://ikukopjsbewxvudeemxg.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrdWtvcGpzYmV3eHZ1ZGVlbXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODkyNDgsImV4cCI6MjA4NTE2NTI0OH0.Y05tYSapZaSQ9aca4Ih2d0ETYonUUHyU4w_XnZqFZ-g'
+        };
+        
+        let supabase = null;
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('initialStatus');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function initSupabase() {
+            try {
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Supabase客户端库未加载');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                updateStatus('✅ Supabase客户端初始化成功', 'success');
+                return true;
+            } catch (error) {
+                updateStatus('❌ Supabase初始化失败: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        async function testConnection() {
+            clearResults();
+            
+            if (!await initSupabase()) {
+                return;
+            }
+            
+            addResult('正在测试基本连接...', 'info');
+            
+            try {
+                // 测试基本连接
+                const { data, error } = await supabase.from('tasks').select('count').limit(1);
+                
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        addResult('✅ 连接成功！但tasks表不存在（这是正常的）', 'warning');
+                        addResult('错误代码: ' + error.code, 'info');
+                        addResult('错误消息: ' + error.message, 'info');
+                    } else {
+                        addResult('❌ 连接失败: ' + error.message, 'error');
+                        addResult('错误代码: ' + error.code, 'info');
+                    }
+                } else {
+                    addResult('✅ 连接成功！tasks表已存在', 'success');
+                    addResult('返回数据: ' + JSON.stringify(data), 'info');
+                }
+                
+            } catch (error) {
+                addResult('❌ 连接测试异常: ' + error.message, 'error');
+            }
+        }
+        
+        async function testTable() {
+            clearResults();
+            
+            if (!await initSupabase()) {
+                return;
+            }
+            
+            addResult('正在测试tasks表...', 'info');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .limit(5);
+                
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        addResult('❌ tasks表不存在', 'error');
+                        addResult('需要在Supabase控制台创建表', 'warning');
+                    } else {
+                        addResult('❌ 查询失败: ' + error.message, 'error');
+                    }
+                    addResult('错误代码: ' + error.code, 'info');
+                } else {
+                    addResult('✅ tasks表存在', 'success');
+                    addResult('表中数据条数: ' + data.length, 'info');
+                    if (data.length > 0) {
+                        addResult('示例数据: ' + JSON.stringify(data[0]), 'info');
+                    }
+                }
+                
+            } catch (error) {
+                addResult('❌ 表测试异常: ' + error.message, 'error');
+            }
+        }
+        
+        async function createTable() {
+            clearResults();
+            
+            addResult('⚠️ 注意：此功能需要你在Supabase控制台手动执行SQL', 'warning');
+            addResult('请登录Supabase控制台，在SQL编辑器中执行以下语句：', 'info');
+            
+            const sql = `CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    text TEXT NOT NULL,
+    date DATE,
+    priority TEXT,
+    repeat TEXT,
+    completed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);`;
+            
+            addResult('<pre>' + sql + '</pre>', 'info');
+            
+            addResult('操作步骤：', 'info');
+            addResult('1. 访问 https://supabase.com/dashboard', 'info');
+            addResult('2. 登录你的账户', 'info');
+            addResult('3. 选择项目: ikukopjsbewxvudeemxg', 'info');
+            addResult('4. 点击左侧菜单的"SQL Editor"', 'info');
+            addResult('5. 粘贴上面的SQL语句并执行', 'info');
+        }
+        
+        async function testInsert() {
+            clearResults();
+            
+            if (!await initSupabase()) {
+                return;
+            }
+            
+            addResult('正在测试数据插入...', 'info');
+            
+            try {
+                const testTask = {
+                    text: '测试任务 - ' + new Date().toLocaleTimeString(),
+                    date: new Date().toISOString().split('T')[0],
+                    priority: 'medium',
+                    repeat: 'none',
+                    completed: false
+                };
+                
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .insert([testTask])
+                    .select();
+                
+                if (error) {
+                    if (error.code === '42P01') {
+                        addResult('❌ 插入失败：表不存在', 'error');
+                        addResult('请先创建tasks表', 'warning');
+                    } else {
+                        addResult('❌ 插入失败: ' + error.message, 'error');
+                    }
+                    addResult('错误代码: ' + error.code, 'info');
+                } else {
+                    addResult('✅ 数据插入成功！', 'success');
+                    addResult('插入的数据: ' + JSON.stringify(data[0]), 'info');
+                    
+                    // 删除测试数据
+                    setTimeout(async () => {
+                        try {
+                            await supabase.from('tasks').delete().eq('id', data[0].id);
+                            addResult('✅ 测试数据已清理', 'success');
+                        } catch (deleteError) {
+                            addResult('⚠️ 清理测试数据失败: ' + deleteError.message, 'warning');
+                        }
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                addResult('❌ 插入测试异常: ' + error.message, 'error');
+            }
+        }
+        
+        async function testQuery() {
+            clearResults();
+            
+            if (!await initSupabase()) {
+                return;
+            }
+            
+            addResult('正在测试数据查询...', 'info');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        addResult('❌ 查询失败：表不存在', 'error');
+                    } else {
+                        addResult('❌ 查询失败: ' + error.message, 'error');
+                    }
+                    addResult('错误代码: ' + error.code, 'info');
+                } else {
+                    addResult('✅ 查询成功！', 'success');
+                    addResult('找到 ' + data.length + ' 条记录', 'info');
+                    
+                    if (data.length > 0) {
+                        data.forEach((task, index) => {
+                            addResult(`任务 ${index + 1}: ${task.text} (${task.date})`, 'info');
+                        });
+                    } else {
+                        addResult('表中暂无数据', 'info');
+                    }
+                }
+                
+            } catch (error) {
+                addResult('❌ 查询测试异常: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            initSupabase();
+        };
+    </script>
+</body>
+</html>
